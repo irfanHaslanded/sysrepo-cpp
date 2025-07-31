@@ -393,6 +393,14 @@ void Session::copyConfig(const Datastore source, const std::optional<std::string
     throwIfError(res, "Couldn't copy config", m_sess.get());
 }
 
+void Session::replaceConfig(const std::optional<std::string>& moduleName, libyang::DataNode src_config, std::chrono::milliseconds timeout)
+{
+    auto res = sr_replace_config(m_sess.get(), moduleName ? moduleName->c_str() : nullptr, libyang::releaseRawNode(src_config), timeout.count());
+
+    throwIfError(res, "Couldn't replace config");
+}
+
+
 /**
  * Send an RPC/action and return the result.
  *
@@ -1038,4 +1046,15 @@ sr_session_ctx_s* getRawSession(Session sess)
 {
     return sess.m_sess.get();
 }
+
+libyang::DataNode Session::getModuleInfo()
+{
+    sr_data_t *info;
+
+    auto res = sr_get_module_info(m_conn.getRawConnection(), &info);
+    throwIfError(res, "Couldn't get module info");
+
+    return wrapSrData(m_sess, info);
+}
+
 }

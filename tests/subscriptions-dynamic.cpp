@@ -39,22 +39,6 @@
     REQUIRE(pipeStatus((SUBSCRIPTION).fd(), -1) == PipeStatus::DataReady); \
     (SUBSCRIPTION).processEvent(cbNotif);
 
-#define SUBSCRIPTION_TERMINATED(SUBSCRIPTION) R"({
-  "ietf-subscribed-notifications:subscription-terminated": {
-    "id": )" + std::to_string((SUBSCRIPTION).subscriptionId()) + R"(,
-    "reason": "no-such-subscription"
-  }
-}
-)"
-
-#define REPLAY_COMPLETED(SUBSCRIPTION) R"({
-  "ietf-subscribed-notifications:replay-completed": {
-    "id": )" \
-    + std::to_string((SUBSCRIPTION).subscriptionId()) + R"(
-  }
-}
-)"
-
 #define REQUIRE_YANG_PUSH_UPDATE(SUBSCRIPTION, NOTIFICATION) \
     TROMPELOEIL_REQUIRE_CALL(rec, recordYangPushUpdate((SUBSCRIPTION).subscriptionId(), NOTIFICATION)).IN_SEQUENCE(seq);
 
@@ -206,8 +190,14 @@ TEST_CASE("Dynamic subscriptions")
 
             // wait until stop time and bit more
             std::this_thread::sleep_until(stopTime + 500ms);
-
-            REQUIRE_NOTIFICATION(sub, SUBSCRIPTION_TERMINATED(sub));
+            auto term_sub = R"({
+  "ietf-subscribed-notifications:subscription-terminated": {
+    "id": )" + std::to_string(sub.subscriptionId()) + R"(,
+    "reason": "no-such-subscription"
+  }
+}
+)";
+            REQUIRE_NOTIFICATION(sub, term_sub);
             READ_NOTIFICATION(sub);
 
             REQUIRE_PIPE_HANGUP(sub);
@@ -232,7 +222,14 @@ TEST_CASE("Dynamic subscriptions")
             // wait for the replayed notification and replay-completed notification
             REQUIRE_NOTIFICATION(sub, notifications[0]);
             READ_NOTIFICATION_BLOCKING(sub);
-            REQUIRE_NOTIFICATION(sub, REPLAY_COMPLETED(sub));
+            auto replay_complete = R"({
+  "ietf-subscribed-notifications:replay-completed": {
+    "id": )" \
+    + std::to_string(sub.subscriptionId()) + R"(
+  }
+}
+)";
+            REQUIRE_NOTIFICATION(sub, replay_complete);
             READ_NOTIFICATION_BLOCKING(sub);
 
             sub.terminate();

@@ -12,14 +12,14 @@ include(GNUInstallDirs)
 
 set(CMAKE_CXX_FLAGS_DEBUG "-Werror ${CMAKE_CXX_FLAGS_DEBUG}")
 
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -pedantic -Woverloaded-virtual -Wimplicit-fallthrough -Wsuggest-override ${CMAKE_CXX_FLAGS}")
+set(CMAKE_CXX_FLAGS "-g -Wall -Wextra -pedantic -Woverloaded-virtual -Wimplicit-fallthrough -Wsuggest-override ${CMAKE_CXX_FLAGS}")
 
 add_custom_target(sysrepo-cpp-version-cmake
         cmake/ProjectGitVersion.cmake
         cmake/ProjectGitVersionRunner.cmake
         )
 include(cmake/ProjectGitVersion.cmake)
-set(SYSREPO_CPP_PKG_VERSION "6")
+set(SYSREPO_CPP_PKG_VERSION "1.2.6")
 prepare_git_version(SYSREPO_CPP_VERSION ${SYSREPO_CPP_PKG_VERSION})
 
 find_package(Doxygen)
@@ -27,8 +27,8 @@ option(WITH_DOCS "Create and install internal documentation (needs Doxygen)" ${D
 option(WITH_EXAMPLES "Build examples" ON)
 
 find_package(PkgConfig)
-pkg_check_modules(LIBYANG_CPP REQUIRED libyang-cpp>=3 IMPORTED_TARGET)
-pkg_check_modules(SYSREPO REQUIRED sysrepo>=3.7.4 IMPORTED_TARGET)
+pkg_check_modules(LIBYANG_CPP REQUIRED libyang-cpp IMPORTED_TARGET)
+pkg_check_modules(SYSREPO REQUIRED sysrepo IMPORTED_TARGET)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -40,6 +40,7 @@ add_library(sysrepo-cpp SHARED
         src/utils/exception.cpp
         src/utils/utils.cpp
     )
+set_target_properties(sysrepo-cpp PROPERTIES VERSION ${SYSREPO_CPP_PKG_VERSION} SOVERSION 7)
 
 target_link_libraries(sysrepo-cpp PRIVATE PkgConfig::SYSREPO PUBLIC PkgConfig::LIBYANG_CPP)
 # We do not offer any long-term API/ABI guarantees. To make stuff easier for downstream consumers,
@@ -85,7 +86,7 @@ if(BUILD_TESTING)
         --install ${CMAKE_CURRENT_SOURCE_DIR}/tests/yang/ietf-yang-push@2019-09-09.yang -e on-change
         )
 
-    sysrepo_cpp_test(NAME session FIXTURE fixture-test-module)
+    sysrepo_cpp_test(NAME session FIXTURE fixture-test-module LIBRARIES PkgConfig::SYSREPO)
     sysrepo_cpp_test(NAME subscriptions FIXTURE fixture-test-module LIBRARIES Threads::Threads)
     sysrepo_cpp_test(NAME subscriptions-dynamic FIXTURE fixture-dynamic-subscriptions LIBRARIES PkgConfig::SYSREPO)
     sysrepo_cpp_test(NAME unsafe FIXTURE fixture-test-module LIBRARIES PkgConfig::SYSREPO)

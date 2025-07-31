@@ -5,6 +5,9 @@ function(sysrepo_test)
 
     add_executable(test-${TEST_NAME} ${CMAKE_SOURCE_DIR}/tests/${TEST_NAME}.cpp)
     target_link_libraries(test-${TEST_NAME} ${TEST_LIBRARIES})
+    get_filename_component(TESTS_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tests" REALPATH)
+    target_compile_definitions(test-${TEST_NAME} PRIVATE TESTS_SRC_DIR="${TESTS_SRC_DIR}")
+
     target_include_directories(test-${TEST_NAME}
         PUBLIC
             ${CMAKE_CURRENT_SOURCE_DIR}

@@ -9,7 +9,10 @@
 
 #include <chrono>
 #include <memory>
+#include <optional>
 #include <string>
+#include <vector>
+
 #include <sysrepo-cpp/Enum.hpp>
 
 struct sr_conn_ctx_s;
@@ -39,6 +42,12 @@ public:
 
     ModuleReplaySupport getModuleReplaySupport(const std::string& moduleName);
     void setModuleReplaySupport(const std::string& moduleName, bool enabled);
+    void installModules(const std::vector<std::string>& schema_paths,
+            const std::optional<std::string>& search_dir);
+
+    void removeModules(const std::vector<std::string>& modules);
+
+    sr_conn_ctx_s* getRawConnection(void);
 
     friend Connection wrapUnmanagedConnection(std::shared_ptr<sr_conn_ctx_s> conn);
     friend Session;

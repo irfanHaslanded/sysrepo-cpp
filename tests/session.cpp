@@ -12,15 +12,47 @@
 #include <sysrepo-cpp/utils/utils.hpp>
 #include <sysrepo-cpp/utils/exception.hpp>
 
+extern "C" {
+  #include <sysrepo.h>
+}
+
 using namespace std::literals;
 
 TEST_CASE("session")
 {
-    sysrepo::setLogLevelStderr(sysrepo::LogLevel::Information);
+    sysrepo::setLogLevelStderr(sysrepo::LogLevel::Debug);
     std::optional<sysrepo::Connection> conn{std::in_place};
     auto sess = conn->sessionStart();
     sess.copyConfig(sysrepo::Datastore::Startup);
     const auto leaf = "/test_module:leafInt32"s;
+
+    DOCTEST_SUBCASE("Connection removeModules and installModules")
+    {
+        conn->removeModules({"test_module"});
+
+        // Check that it is actually gone!
+        REQUIRE_THROWS_WITH_AS(sess.getOneNode("/test_module:leafInt32"),
+                "Session::getOneNode: Couldn't get '/test_module:leafInt32': SR_ERR_LY\n"
+                " Unknown/non-implemented module \"test_module\". (SR_ERR_LY)",
+                sysrepo::ErrorWithCode);
+
+        // Re-install the module
+        conn->installModules({TESTS_SRC_DIR "/test_module.yang"}, TESTS_SRC_DIR);
+
+        sess.setItem("/test_module:leafInt32", "1");
+        sess.applyChanges();
+        REQUIRE(sess.getData("/test_module:leafInt32"));
+
+        // Cleanup
+        sess.deleteItem("/test_module:leafInt32");
+        sess.applyChanges();
+    }
+
+    DOCTEST_SUBCASE("getRawConnection and call some C API with it")
+    {
+        auto raw_conn = conn->getRawConnection();
+        REQUIRE(sr_get_content_id(raw_conn) > 1);
+    }
 
     DOCTEST_SUBCASE("Session should be still valid even after the Connection class gets freed")
     {

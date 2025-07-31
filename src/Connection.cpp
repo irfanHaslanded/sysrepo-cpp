@@ -17,6 +17,44 @@ extern "C" {
 
 namespace sysrepo {
 
+static std::vector<const char*> to_vec_c_str(const std::vector<std::string>& list)
+{
+    std::vector<const char*> native_list;
+    native_list.reserve(1 + list.size());
+
+    // iterate with reference to elements to ensure `elem.c_str()` lives as long as `list`
+    // and avoid copying
+    for (const auto &elem : list) {
+        native_list.push_back(elem.c_str());
+    }
+
+    // sysrepo expects this array to be null terminated!
+    native_list.push_back(nullptr);
+
+    return native_list;
+}
+
+void Connection::installModules(const std::vector<std::string>& schema_paths, const std::optional<std::string>& search_dir)
+{
+    auto schema_paths_c = to_vec_c_str(schema_paths);
+    auto res = sr_install_modules(ctx.get(), schema_paths_c.data(),
+            search_dir ? search_dir->c_str() : nullptr, nullptr);
+
+    throwIfError(res, "Couldn't install modules");
+}
+
+void Connection::removeModules(const std::vector<std::string>& modules)
+{
+    auto modules_c = to_vec_c_str(modules);
+    auto res = sr_remove_modules(ctx.get(), modules_c.data(), 1);
+    throwIfError(res, "Couldn't remove modules");
+}
+
+sr_conn_ctx_s* Connection::getRawConnection(void)
+{
+    return ctx.get();
+}
+
 /**
  * Creates a new connection to sysrepo. The lifetime of it is managed automatically.
  *

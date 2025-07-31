@@ -179,4 +179,15 @@ static_assert(static_cast<YangPushChange>(SRSN_YP_CHANGE_INSERT) == YangPushChan
 static_assert(static_cast<YangPushChange>(SRSN_YP_CHANGE_MOVE) == YangPushChange::Move);
 static_assert(static_cast<YangPushChange>(SRSN_YP_CHANGE_REPLACE) == YangPushChange::Replace);
 static_assert(static_cast<YangPushChange>(SRSN_COUNT_YP_CHANGE) == YangPushChange::EnumCount);
+
+constexpr LogLevel fromLogLevel(const sr_log_level_t level)
+{
+    return static_cast<LogLevel>(level);
+}
+static_assert(fromLogLevel(SR_LL_NONE) == LogLevel::None);
+static_assert(fromLogLevel(SR_LL_ERR) == LogLevel::Error);
+static_assert(fromLogLevel(SR_LL_WRN) == LogLevel::Warning);
+static_assert(fromLogLevel(SR_LL_INF) == LogLevel::Information);
+static_assert(fromLogLevel(SR_LL_DBG) == LogLevel::Debug);
+
 }

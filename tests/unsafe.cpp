@@ -21,6 +21,7 @@ public:
 
 TEST_CASE("unsafe")
 {
+    sysrepo::setLogLevelStderr(sysrepo::LogLevel::Debug);
     DOCTEST_SUBCASE("wrapUnmanagedSession")
     {
         sr_conn_ctx_t* conn;

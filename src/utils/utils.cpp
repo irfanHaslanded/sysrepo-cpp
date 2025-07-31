@@ -14,6 +14,8 @@ extern "C" {
 #include "enum.hpp"
 #include "utils.hpp"
 
+using logCb = std::function<void(sysrepo::LogLevel, const char*)>;
+
 namespace sysrepo {
 /**
  * Wraps a session pointer without managing it. Use at your own risk.
@@ -71,6 +73,17 @@ void checkNoThreadFlag(const SubscribeOptions opts, const std::optional<FDHandli
         throw Error("CustomEventLoopCallbacks must be present when using SubscribeOptions::NoThread");
     }
 }
+    namespace {
+        logCb logCallback_;
+
+        extern "C" void logCallbackAdapter(sr_log_level_t level, const char* message) {
+            logCallback_(fromLogLevel(level), message);
+        }
+    }
+    void logSetCb(const logCb& logCallback) {
+        logCallback_ = logCallback;
+        sr_log_set_cb(logCallbackAdapter);
+    }
 
 /**
  * @short If there's a sysrepo:discard-items node which matches the given XPath, return it
@@ -130,3 +143,5 @@ void unlinkFromForest(std::optional<libyang::DataNode>& root, libyang::DataNode 
 }
 
 }
+
+

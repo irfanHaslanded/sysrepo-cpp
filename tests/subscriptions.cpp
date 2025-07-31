@@ -58,7 +58,7 @@ void write_something(int fd)
 
 TEST_CASE("subscriptions")
 {
-    sysrepo::setLogLevelStderr(sysrepo::LogLevel::Information);
+    sysrepo::setLogLevelStderr(sysrepo::LogLevel::Debug);
     sysrepo::Connection conn;
     auto sess = conn.sessionStart();
     sess.copyConfig(sysrepo::Datastore::Startup, "test_module");

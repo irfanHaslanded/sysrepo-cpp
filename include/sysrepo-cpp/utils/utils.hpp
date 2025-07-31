@@ -8,11 +8,14 @@
 #pragma once
 #include <sysrepo-cpp/Enum.hpp>
 #include <sysrepo-cpp/Session.hpp>
+#include <functional>
 
+using logCb = std::function<void(sysrepo::LogLevel, const char*)>;
 namespace sysrepo {
 Session wrapUnmanagedSession(sr_session_ctx_s* session);
 void setLogLevelStderr(const LogLevel);
 std::optional<libyang::DataNodeOpaque> findMatchingDiscard(libyang::DataNode root, const std::string& xpath);
 std::vector<libyang::DataNodeOpaque> findMatchingDiscardPrefixes(libyang::DataNode root, const std::string& xpathPrefix);
 void unlinkFromForest(std::optional<libyang::DataNode>& root, libyang::DataNode node);
+void logSetCb(const logCb& logCallback);
 }
