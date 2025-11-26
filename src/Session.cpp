@@ -241,7 +241,7 @@ std::optional<libyang::DataNode> Session::operationalChanges(const std::optional
 void Session::discardOperationalChanges(const std::optional<std::string>& moduleName, std::chrono::milliseconds timeout)
 {
     SYSREPO_CPP_SESSION_MTX;
-    auto res = sr_discard_oper_changes(nullptr, m_sess.get(), moduleName ? nullptr : moduleName->c_str(), timeout.count());
+    auto res = sr_discard_oper_changes(m_sess.get(), moduleName ? nullptr : moduleName->c_str(), timeout.count());
     throwIfError(res, "Session::discardOoperationalChanges: Couldn't discard "s + (moduleName ? "for module \"" + *moduleName + "\"" : "globally"s), m_sess.get());
 }
 
@@ -733,6 +733,17 @@ ChangeCollection Session::getChanges(const std::string& xpath)
 {
     SYSREPO_CPP_SESSION_MTX;
     return ChangeCollection{xpath, *this};
+}
+
+std::optional<libyang::DataNode> Session::getChangeDiff(void) const
+{
+    auto diff = sr_get_change_diff(m_sess.get());
+    if (!diff) {
+        return std::nullopt;
+    }
+
+    auto wrapped = libyang::wrapUnmanagedRawNode(diff);
+    return std::make_optional<libyang::DataNode>(wrapped);
 }
 
 /**

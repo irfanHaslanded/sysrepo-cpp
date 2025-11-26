@@ -61,7 +61,7 @@ Subscription::~Subscription()
 void Subscription::saveContext(sr_subscription_ctx_s* ctx)
 {
     if (!m_sub) {
-        m_sub = std::shared_ptr<sr_subscription_ctx_s>(ctx, sr_unsubscribe);
+        m_sub = std::shared_ptr<sr_subscription_ctx_s>(ctx, sr_unsubscribe_no_fail);
         if (m_customEventLoopCbs) {
             m_customEventLoopCbs->registerFd(eventPipe(), [sub = m_sub] {
                 auto res = sr_subscription_process_events(sub.get(), nullptr, nullptr);

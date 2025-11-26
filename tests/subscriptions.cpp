@@ -64,6 +64,21 @@ TEST_CASE("subscriptions")
     sess.copyConfig(sysrepo::Datastore::Startup, "test_module");
     std::atomic<int> called = 0;
 
+    DOCTEST_SUBCASE("getChangeDiff")
+    {
+        sysrepo::ModuleChangeCb moduleChangeCb = [&called] (sysrepo::Session session, auto, auto, auto, auto, auto) -> sysrepo::ErrorCode {
+            session.getChangeDiff();
+            called++;
+            return sysrepo::ErrorCode::Ok;
+        };
+
+        auto sub = sess.onModuleChange("test_module", moduleChangeCb);
+        sess.setItem("/test_module:leafInt32", "1");
+        sess.applyChanges();
+        REQUIRE(called == 2);
+
+    }
+
     DOCTEST_SUBCASE("simple case")
     {
         sysrepo::ModuleChangeCb moduleChangeCb = [&called] (auto, auto, auto, auto, auto, auto) -> sysrepo::ErrorCode {

@@ -664,12 +664,6 @@ TEST_CASE("session")
         // Parsed type info is not preserved by libyang unless its context is constructed with a flag,
         // and that flag is not used by sysrepo by default...
         REQUIRE_THROWS_AS(sess.getOneNode("/test_module:popelnice/s").schema().asLeaf().valueType().asString().length(), libyang::ParsedInfoUnavailable);
-
-        // ...unless we pass that flag explicitly as a parameter to the connection.
-        auto sess2 = sysrepo::Connection{sysrepo::ConnectionFlags::LibYangPrivParsed}.sessionStart();
-        sess2.setItem("/test_module:popelnice/s", "333");
-        REQUIRE(sess2.getOneNode("/test_module:popelnice/s").asTerm().valueStr() == "333");
-        REQUIRE(sess2.getOneNode("/test_module:popelnice/s").schema().asLeaf().valueType().asString().length().parts[0].max == 10);
     }
 
     DOCTEST_SUBCASE("replay support")

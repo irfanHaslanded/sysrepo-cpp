@@ -167,6 +167,7 @@ public:
         const std::optional<NotificationTimeStamp>& startTime = std::nullopt);
 
     ChangeCollection getChanges(const std::string& xpath = "//.");
+    std::optional<libyang::DataNode> getChangeDiff(void) const;
     void setErrorMessage(const std::string& msg);
     void setNetconfError(const NetconfErrorInfo& info);
 
